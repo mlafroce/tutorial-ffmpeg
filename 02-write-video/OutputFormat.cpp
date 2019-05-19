@@ -9,6 +9,9 @@ extern "C" {
 #include <libavutil/opt.h>
 }
 
+/**
+ * Codifica un frame y lo escribe en disco
+ */
 static void encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt,
                    FILE *outfile)
 {
@@ -33,7 +36,6 @@ static void encode(AVCodecContext *enc_ctx, AVFrame *frame, AVPacket *pkt,
 
 OutputFormat::OutputFormat(FormatContext& context,
                            const std::string& filename) : context(context) {
-    this->outputFile = fopen(filename.c_str(), "wb");
     // Intenta deducir formato según extensión
     this->avOutputFormat = av_guess_format(NULL, filename.c_str(), NULL);
     if (!this->avOutputFormat) {
@@ -45,28 +47,36 @@ OutputFormat::OutputFormat(FormatContext& context,
     }
     // h.264 es bastante popular, pero hay mejores
     this->avOutputFormat->video_codec = AV_CODEC_ID_H264;
-    AVCodec *codec = avcodec_find_encoder(avOutputFormat->video_codec);
+    AVCodec *codec = avcodec_find_encoder(this->avOutputFormat->video_codec);
     //AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_H264);
     if (!codec) {
-        throw std::runtime_error("No se pudo instancia codec");
+        throw std::runtime_error("No se pudo instanciar codec");
     }
-    this->codecContext = avcodec_alloc_context3(codec);
-    this->codecContext->bit_rate = 400000;
-    // La resolución debe ser múltiplo de 2
-    this->codecContext->width = 352;
-    this->codecContext->height = 288;
-    this->codecContext->time_base = {1,25};
-    this->codecContext->framerate = {25,1};
-    this->codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    this->codecContext->gop_size = 10;
-    this->codecContext->max_b_frames = 1;
-    if (codec->id == AV_CODEC_ID_H264) {
-        this->codecContext->profile = FF_PROFILE_H264_BASELINE;
-        av_opt_set(this->codecContext->priv_data, "preset", "slow", 0);
-    }
+    codecContextInit(codec);
+    this->outputFile = fopen(filename.c_str(), "wb");
+
+    /**
+     * TODO: ¿Esto es necesario para inicializar el video?
+     * No logro iniciar el video con el timestamp correcto :|
+     *
+    AVFormatContext* formatContext = context.getContext();
+    this->video_avstream = avformat_new_stream(formatContext, codec);
+
+    avcodec_parameters_from_context(
+        this->video_avstream->codecpar,
+        this->codecContext);
     
-    avcodec_open2(this->codecContext, codec, NULL);
-    this->video_avstream = avformat_new_stream(context.getContext(), codec);
+    formatContext->oformat = this->avOutputFormat;
+    
+    if(!(formatContext->flags & AVFMT_NOFILE)) {
+        if(avio_open(&formatContext->pb, filename.c_str(), AVIO_FLAG_WRITE) < 0)
+          return;
+    }
+    if(avformat_write_header(formatContext, NULL)) {
+        throw std::runtime_error("No se pudo iniciar header");
+    }
+     *
+     **/
 }
 
 void OutputFormat::writeData() {
@@ -79,27 +89,14 @@ void OutputFormat::writeData() {
     frame->width  = this->codecContext->width;
     frame->height = this->codecContext->height;
     
-    av_frame_get_buffer(frame, 32);
-    //avformat_write_header(context.getContext(), NULL);
-    
+    av_frame_get_buffer(frame, 0);
+    //avformat_write_hesader(context.getContext(), NULL);
     AVPacket* pkt = av_packet_alloc();
-    for(int i = 0; i<25; i++) {
-        /* Y */
-        for(int y=0; y < frame->height; y++) {
-            for(int x=0; x < frame->width; x++) {
-                frame->data[0][y * frame->linesize[0] + x] = y + i * 3;
-            }
-        }
-        
-        // Cb y Ck se escriben en la mitad del buffer
-        for(int y=0; y < frame->height / 2; y++) {
-            for(int x=0; x < frame->width / 2; x++) {
-                frame->data[1][y * frame->linesize[1] + x] = 128 + y + i * 2;
-                frame->data[2][y * frame->linesize[2] + x] = 64 + x + i * 5;
-            }
-        }
-        frame->pts = i;
-
+    int pts = 0;
+    for(int i = 0; i<50; i++) {
+        drawFrame(frame, i);
+        frame->pts = pts;
+        pts++;
         /* encode the image */
         encode(this->codecContext, frame, pkt, this->outputFile);
     }
@@ -107,12 +104,57 @@ void OutputFormat::writeData() {
     /* add sequence end code to have a real MPEG file */
     uint8_t endcode[] = { 0, 0, 1, 0xb7 };
     fwrite(endcode, 1, sizeof(endcode), this->outputFile);
-    fclose(this->outputFile);
     av_packet_free(&pkt);
     av_frame_free(&frame);
+}
+ 
+void OutputFormat::drawFrame(AVFrame* frame, int i) {
+    /**
+     * YUV444/422 Format:
+     * Size of data[0] is linesize[0] * AVFrame::height
+     * Size of data[1] is linesize[1] * AVFrame::height
+     * Size of data[2] is linesize[2] * AVFrame::height
+     * 
+     * YUV420 Format:
+     * Size of data[0] is linesize[0] * AVFrame::height
+     * Size of data[1] is linesize[1] * (AVFrame::height / 2)
+     * Size of data[2] is linesize[2] * (AVFrame::height / 2)
+     */
+    /* Y */
+    for(int y=0; y < frame->height; y++) {
+        for(int x=0; x < frame->width; x++) {
+            frame->data[0][y * frame->linesize[0] + x] = y + i * 3;
+        }
+    }
+    
+    // Cb y Ck se escriben en la mitad del buffer
+    for(int y=0; y < frame->height / 2; y++) {
+        for(int x=0; x < frame->width / 2; x++) {
+            frame->data[1][y * frame->linesize[1] + x] = 128 + y + i * 2;
+            frame->data[2][y * frame->linesize[2] + x] = 64 + x + i * 5;
+        }
+    }
+}
+
+void OutputFormat::codecContextInit(AVCodec* codec){
+    this->codecContext = avcodec_alloc_context3(codec);
+    // La resolución debe ser múltiplo de 2
+    this->codecContext->width = 352;
+    this->codecContext->height = 288;
+    this->codecContext->time_base = {1,25};
+    this->codecContext->framerate = {25,1};
+    this->codecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    this->codecContext->gop_size = 10;
+    this->codecContext->max_b_frames = 2;
+    if (codec->id == AV_CODEC_ID_H264) {
+        this->codecContext->profile = FF_PROFILE_H264_BASELINE;
+        av_opt_set(this->codecContext->priv_data, "preset", "slow", 0);
+    }
+    avcodec_open2(this->codecContext, codec, NULL);
 }
 
 OutputFormat::~OutputFormat() {
     avcodec_close(this->codecContext);
     avcodec_free_context(&this->codecContext);
+    fclose(this->outputFile);
 }

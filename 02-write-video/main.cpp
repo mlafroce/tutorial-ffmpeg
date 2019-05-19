@@ -13,16 +13,13 @@ int main(int argc, char** argv) {
         return -1;
     }
     
-    // Deprecado en ffmpeg >4
-    // Esta función posee varios leaks, por lo que es útil hacerse un suppression file
-    // con la misma
     av_register_all();
     
     /// Inicializo contexto
     try {
-    FormatContext context;
-    OutputFormat output(context, argv[1]);
-    output.writeData();
+        FormatContext context;
+        OutputFormat output(context, argv[1]);
+        output.writeData();
     } catch (const std::runtime_error& re) {
         std::cout << re.what() << std::endl;
     }
