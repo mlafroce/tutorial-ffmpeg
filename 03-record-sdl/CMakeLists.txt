@@ -22,6 +22,7 @@ add_executable (record-sdl
         src/FormatOutput.cpp
         src/CodecContext.cpp
         src/FormatContext.cpp
+        src/SwsContext.cpp
         src/main.cpp
 )
 

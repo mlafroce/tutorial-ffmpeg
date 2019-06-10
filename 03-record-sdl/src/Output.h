@@ -20,7 +20,6 @@ class SwsContext;
  */
 class Output {
 private:
-    void codecContextInit(AVCodec* codec);
     FormatContext& context;
     FormatOutput format;
     CodecContext codecContext;
