@@ -7,8 +7,11 @@ extern "C" {
 }
 #include "CodecContext.h"
 
-CodecContext::CodecContext(AVCodec *codec) {
-    this->codecContext = avcodec_alloc_context3(codec);
+CodecContext::CodecContext(AVCodec *codec) :
+codecContext(avcodec_alloc_context3(codec)) {
+    if (!codecContext) {
+        throw CodecContextInitException();
+    }
     // La resolución debe ser múltiplo de 2
     this->codecContext->width = 352;
     this->codecContext->height = 288;
