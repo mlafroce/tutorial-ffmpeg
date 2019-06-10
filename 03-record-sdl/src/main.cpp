@@ -9,7 +9,7 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 #include "FormatContext.h"
-#include "OutputFormat.h"
+#include "Output.h"
 
 const int BUFFER_WIDTH = 352, BUFFER_HEIGHT = 288;
 
@@ -23,7 +23,7 @@ int main(int argc, char** argv){
     try {
         av_register_all();
         FormatContext context;
-        OutputFormat videoOutput(context, argv[1]);
+        Output videoOutput(context, argv[1]);
         SdlWindow window(800, 600);
         window.fill();
         // Usar factory
@@ -63,6 +63,7 @@ int main(int argc, char** argv){
                 SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RendererReadPixels error", SDL_GetError(), NULL);
                 break;
             }
+            //operacion lenta que va a tenre que estar en otro thread
             videoOutput.writeFrame(dataBuffer.data(), ctx);
         }
         videoOutput.close();
