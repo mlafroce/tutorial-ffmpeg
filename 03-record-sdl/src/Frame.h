@@ -12,7 +12,6 @@ extern "C" {
 }
 
 #define INIT_FRAME_EXC "There was an error while allocating memory for a Frame\n"
-#define SEND_FRAME_EXC "There was an error while sending the frame\n"
 
 class FrameException : public std::exception {
 protected:
@@ -28,16 +27,6 @@ class FrameInitException : public FrameException {
 public:
     explicit FrameInitException() {
         message = INIT_FRAME_EXC;
-    }
-};
-
-class FrameSendException : public FrameException {
-    virtual const char *what() const throw() {
-        return this->message.c_str();
-    }
-public:
-    explicit FrameSendException() {
-        message = SEND_FRAME_EXC;
     }
 };
 
