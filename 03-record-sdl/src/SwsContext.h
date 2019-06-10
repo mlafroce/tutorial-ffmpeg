@@ -6,7 +6,7 @@
 #define FFMPEG_DEMO_SWSCONTEXT_H
 
 
-#define RRP_SWS_CONTEXT_EXC std::__cxx11::string()
+#define RRP_SWS_CONTEXT_EXC "There was an error while writing the frame\n"
 
 #include <string>
 #include <vector>

@@ -38,7 +38,7 @@ int main(int argc, char** argv){
         SDL_Texture* videoTexture = SDL_CreateTexture(window.getRenderer(),
             SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_TARGET, BUFFER_WIDTH, BUFFER_HEIGHT);
 
-        
+
         while (running) {
             // Muevo textura con flechas direccionales
             handleSDLEvent(x, y, running);
