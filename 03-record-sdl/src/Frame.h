@@ -53,8 +53,6 @@ public:
     ~Frame();
 
     void write(const char *data, SwsContext *ctx);
-    void sendTo(AVCodecContext* codecContext);
-
 
     AVFrame* get() {return this->frame;}
 };

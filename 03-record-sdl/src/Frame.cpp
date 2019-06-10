@@ -33,10 +33,3 @@ void Frame::write(const char *data, SwsContext *ctx) {
     frame->pts = currentPts;
     currentPts++;
 }
-
-void Frame::sendTo(AVCodecContext* codecContext) {
-    int s = avcodec_send_frame(codecContext, this->frame);
-    if (s < 0) {
-        throw FrameSendException();
-    }
-}
