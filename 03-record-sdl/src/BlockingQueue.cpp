@@ -16,7 +16,6 @@ void BlockingQueue::push(std::vector<char> element) {
     std::unique_lock<std::mutex> lock(this->m);
     this->queue.push(element);
     this->cond_variable.notify_all();
-    std::cerr << "Notificanding: " << std::endl;
 }
 
 void BlockingQueue::close() {
@@ -31,7 +30,6 @@ std::vector<char> BlockingQueue::pop() {
         throw BlockingQueueDoneException();
     int i = 0;
     while (this->queue.empty() && ! this->done) {
-        std::cerr << "Entro al while de pop por vez: " << i << std::endl;
         this->cond_variable.wait(lock);
         i++;
     }

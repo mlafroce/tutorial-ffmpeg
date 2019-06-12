@@ -43,7 +43,6 @@ int main(int argc, char** argv){
             SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_TARGET, BUFFER_WIDTH, BUFFER_HEIGHT);
 
         consumer.start();
-        std::cerr << "Ya puse a correr el thread consumidor" << std::endl;
         while (running) {
             // Muevo textura con flechas direccionales
             handleSDLEvent(x, y, running);
