@@ -23,6 +23,9 @@ add_executable (record-sdl
         src/CodecContext.cpp
         src/FormatContext.cpp
         src/SwsContext.cpp
+        src/BlockingQueue.cpp
+        src/Consumer.cpp
+        src/Thread.cpp
         src/main.cpp
 )
 

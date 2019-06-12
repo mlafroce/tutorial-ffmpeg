@@ -6,6 +6,8 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_messagebox.h>
 #include "SwsContext.h"
+#include "BlockingQueue.h"
+#include "Consumer.h"
 
 const int BUFFER_WIDTH = 352, BUFFER_HEIGHT = 288;
 
