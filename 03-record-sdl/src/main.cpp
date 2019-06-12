@@ -11,6 +11,7 @@ extern "C" {
 #include "FormatContext.h"
 #include "Output.h"
 #include "SwsContext.h"
+#include "Consumer.h"
 
 const int BUFFER_WIDTH = 352, BUFFER_HEIGHT = 288;
 
@@ -22,8 +23,11 @@ int main(int argc, char** argv){
         return -1;
     }
     try {
+        BlockingQueue queue;
         av_register_all();
-        SwsContext ctx((std::string(argv[1])));
+        SwsContext ctx(queue);
+        std::string filename = argv[1];
+        Consumer consumer(queue, filename);
 
 
         SdlWindow window(800, 600);
@@ -38,7 +42,8 @@ int main(int argc, char** argv){
         SDL_Texture* videoTexture = SDL_CreateTexture(window.getRenderer(),
             SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_TARGET, BUFFER_WIDTH, BUFFER_HEIGHT);
 
-
+        consumer.run();
+        std::cerr << "Ya puse a correr el thread consumidor" << std::endl;
         while (running) {
             // Muevo textura con flechas direccionales
             handleSDLEvent(x, y, running);
@@ -57,6 +62,9 @@ int main(int argc, char** argv){
 
             ctx.write(window);
         }
+
+        queue.close();
+        consumer.join();
     } catch (std::exception& e) {
         std::cout << e.what() << std::endl;
         return 1;

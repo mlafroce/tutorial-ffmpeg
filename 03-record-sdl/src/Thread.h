@@ -21,7 +21,6 @@ public:
     Thread& operator=(const Thread&) = delete;
     virtual ~Thread();
     Thread(Thread&& other);
-    Thread& operator=(Thread&& other);
 };
 
 

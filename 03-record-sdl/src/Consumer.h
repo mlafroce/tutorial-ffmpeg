@@ -9,21 +9,25 @@
 #include "Thread.h"
 #include "BlockingQueue.h"
 #include "Output.h"
+#include "FormatContext.h"
 
 class Consumer : public Thread  {
 private:
     BlockingQueue& producedFrames;
-    Output& outputVideo;
+    FormatContext context;
+    Output videoOutput;
+    // You need it to perform scaling/conversion operations using.
     SwsContext* ctx;
-    int i;
 
 public:
-    //Recibe una cola bloqueante
-    Consumer(BlockingQueue producedImages, Output& outputVideo, SwsContext* ctx, int i);
+    /// first you need to Initialize libavformat and register all the muxers, demuxers and
+    /// protocols with av_register_all();
+    Consumer(BlockingQueue& producedImages, std::string& filename);
 
-    //Espera la notificación de que hay brainfucks para ejecutar
-    //y los ejecuta.
+    ~Consumer();
+
     virtual void run() override;
+
 };
 
 
