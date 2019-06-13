@@ -31,6 +31,10 @@ mkdir build
 cd build
 cmake ..
 make -j<N cores>
+cd 03-record-sdl
+./record-sdl out.mkv
+mplayer out.mkv // Se recomienda `mplayer` 
+                // para poder visualizar el mismo.
 ~~~
 
 Con *N cores* como el número de procesos en paralelo para compilar.
