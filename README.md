@@ -10,12 +10,12 @@ El repositorio contiene 3 aplicaciones de ejemplo para utilizar la biblioteca ff
 
 ## Instalación de dependencias
 
-Instalar las bibliotecas `libavutil`, `libswresample`, `libavformat` y `libavcodec`
+Instalar las bibliotecas `libavutil-dev`, `libswresample-dev`, `libavformat-dev`, `libavcodec-dev` y `libswscale-dev`
 
 ### Instalación en ubuntu
 
 ~~~
-sudo apt install libavutil libswresample libavformat libavcodec
+sudo apt install libavutil-dev libswresample-dev libavformat-dev libavcodec-dev libswscale-dev
 ~~~
 
 ## Notas de diseño
