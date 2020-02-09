@@ -9,7 +9,9 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 #include "FormatContext.h"
-#include "OutputFormat.h"
+#include "Output.h"
+#include "SwsContext.h"
+#include "Consumer.h"
 
 const int BUFFER_WIDTH = 352, BUFFER_HEIGHT = 288;
 
@@ -21,9 +23,13 @@ int main(int argc, char** argv){
         return -1;
     }
     try {
+        BlockingQueue queue;
         av_register_all();
-        FormatContext context;
-        OutputFormat videoOutput(context, argv[1]);
+        SwsContext ctx(queue);
+        std::string filename = argv[1];
+        Consumer consumer(queue, filename);
+
+
         SdlWindow window(800, 600);
         window.fill();
         // Usar factory
@@ -35,14 +41,8 @@ int main(int argc, char** argv){
         // Textura sobre la que voy a renderizar lo que quiero grabar.
         SDL_Texture* videoTexture = SDL_CreateTexture(window.getRenderer(),
             SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_TARGET, BUFFER_WIDTH, BUFFER_HEIGHT);
-        // Contexto para escalar archivos.
-        SwsContext * ctx = sws_getContext(BUFFER_WIDTH, BUFFER_HEIGHT,
-                                  AV_PIX_FMT_RGB24, BUFFER_WIDTH, BUFFER_HEIGHT,
-                                  AV_PIX_FMT_YUV420P, 0, 0, 0, 0);
-        // Este buffer tiene el tamaño de la sección de SDL que quiero leer, multiplico
-        // x3 por la cantidad de bytes (8R,8G,8B)
-        // A sws parece que no le gusta este tamaño
-        std::vector<char> dataBuffer(BUFFER_WIDTH*BUFFER_HEIGHT*3);
+
+        consumer.start();
         while (running) {
             // Muevo textura con flechas direccionales
             handleSDLEvent(x, y, running);
@@ -57,17 +57,13 @@ int main(int argc, char** argv){
             catTexture.render(srcArea, destArea);
             // Efectivamente renderiza
             window.render();
-            // Obtengo los bytes de la textura en el buffer
-            int res = SDL_RenderReadPixels(window.getRenderer(), NULL, SDL_PIXELFORMAT_RGB24, dataBuffer.data(), BUFFER_WIDTH * 3);
-            if (res) {
-                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "RendererReadPixels error", SDL_GetError(), NULL);
-                break;
-            }
-            videoOutput.writeFrame(dataBuffer.data(), ctx);
+
+
+            ctx.write(window);
         }
-        videoOutput.close();
-        // Libero escalador
-        sws_freeContext(ctx);
+
+        queue.close();
+        consumer.join();
     } catch (std::exception& e) {
         std::cout << e.what() << std::endl;
         return 1;
