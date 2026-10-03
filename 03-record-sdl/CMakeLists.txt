@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.5)
 
 project(ffmpeg-sdl)
 
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ggdb -std=c++11")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+add_compile_options(-ggdb)
 
 add_library(sdldemo
   src/Area.cpp
@@ -23,4 +26,5 @@ add_executable (record-sdl
 
 target_link_libraries(record-sdl avformat avcodec avutil swscale sdldemo SDL2 SDL2_image)
 
-install(FILES assets/cat.gif DESTINATION ${CMAKE_BINARY_DIR})
+# Copio la imagen junto al ejecutable, que la busca en su propia carpeta
+configure_file(assets/cat.gif ${CMAKE_CURRENT_BINARY_DIR}/cat.gif COPYONLY)

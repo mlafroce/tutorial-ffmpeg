@@ -1,6 +1,5 @@
 #include "SdlException.h"
 #include <string>
-#include <SDL2/SDL_image.h>
 
 SdlException::SdlException(const char* description, const char* sdlError)
     : std::exception(), description(description) {

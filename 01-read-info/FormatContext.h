@@ -2,13 +2,16 @@
 #define FORMATCONTEXT_H
 #include <string>
 
-class AVFormatContext;
+struct AVFormatContext;
 class FormatContext {
 public:
     // Ctor
     FormatContext();
     // Dtor
     ~FormatContext();
+    // No copiable, es dueño del contexto
+    FormatContext(const FormatContext&) = delete;
+    FormatContext& operator=(const FormatContext&) = delete;
     // Abre un archivo de video e imprime su informacion de formato
     void dumpFormat(const std::string& filename);
 private:

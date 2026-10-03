@@ -2,8 +2,8 @@
 #define __SDL_TEXTURE_H__
 #include <string>
 
-class SDL_Texture;
-class SDL_Renderer;
+struct SDL_Texture;
+struct SDL_Renderer;
 class SdlWindow;
 class Area;
 
@@ -17,6 +17,9 @@ public:
      * Libera la memoria reservada por la textura
      **/
     ~SdlTexture();
+    // No copiable, es dueño de la textura
+    SdlTexture(const SdlTexture&) = delete;
+    SdlTexture& operator=(const SdlTexture&) = delete;
     /**
      * Renderiza la textura cargada
      **/

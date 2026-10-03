@@ -1,12 +1,14 @@
 #include "FormatContext.h"
 #include <stdexcept>
-#include <string>
 extern "C" {
 #include <libavformat/avformat.h>
 }
 
 FormatContext::FormatContext() {
     this->pFormatCtx = avformat_alloc_context();
+    if (!this->pFormatCtx) {
+        throw std::runtime_error("No se pudo reservar memoria para el contexto");
+    }
 }
 
 FormatContext::~FormatContext() {

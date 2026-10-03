@@ -5,12 +5,13 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-FormatContext::FormatContext() {
-    this->pFormatCtx = avformat_alloc_context();
+// El contexto lo reserva avformat_open_input al abrir el archivo
+FormatContext::FormatContext() : pFormatCtx(nullptr) {
 }
 
 FormatContext::~FormatContext() {
-    avformat_free_context(this->pFormatCtx);
+    // Cierra el archivo (si quedó abierto) y libera el contexto
+    avformat_close_input(&this->pFormatCtx);
 }
 
 
@@ -21,9 +22,10 @@ void FormatContext::dumpFormat(const std::string& filename) {
 
     /// Obtiene informacion del stream
     if(avformat_find_stream_info(this->pFormatCtx, NULL) < 0) {
+        avformat_close_input(&this->pFormatCtx);
         throw std::runtime_error("Error obtener informacion");
     }
-    
+
     /// Dump information about file onto standard error
     av_dump_format(pFormatCtx, 0, filename.c_str(), 0);
     avformat_close_input(&this->pFormatCtx);
